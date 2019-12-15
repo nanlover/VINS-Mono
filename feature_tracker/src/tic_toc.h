@@ -3,7 +3,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <chrono>
-//hahhahahahahaha
+
 class TicToc
 {
   public:
