@@ -12,8 +12,10 @@ find_package(catkin REQUIRED COMPONENTS
     cv_bridge
     camera_model
     )
-
+# from pl-slam
+find_package(Boost REQUIRED COMPONENTS regex thread system filesystem)
 find_package(OpenCV REQUIRED)
+LINK_DIRECTORIES(${OpenCV_LIBS_DIR})#from pl-slam
 
 catkin_package()
 
@@ -23,7 +25,11 @@ include_directories(
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Eigen3)
+include_directories(${OpenCV2_INCLUDE_DIRS})#from pl-slam
 include_directories(
+  ${OpenCV_INCLUDE_DIRS}#from pl-slam
+  ${Boost_INCLUDE_DIRS}#from pl-slam
+  ${PROJECT_SOURCE_DIR}/3rdparty/line_descriptor/include/#from pl-slam
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
 )
@@ -34,4 +40,13 @@ add_executable(feature_tracker
     src/feature_tracker.cpp
     )
 
-target_link_libraries(feature_tracker ${catkin_LIBRARIES} ${OpenCV_LIBS})
+list(APPEND LINK_LIBS
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+    ${Boost_LIBRARIES}#from pl-slam
+    ${PROJECT_SOURCE_DIR}/3rdparty/line_descriptor/lib/liblinedesc.so #from pl-slam
+)
+target_link_libraries(feature_tracker ${catkin_LIBRARIES} ${OpenCV_LIBS}
+    ${PROJECT_SOURCE_DIR}/3rdparty/line_descriptor/lib/liblinedesc.so #from pl-slam
+    ${${Boost_LIBRARIES}}#from pl-slam
+)
