@@ -78,6 +78,70 @@ void FeatureTracker::addPoints()
     }
 }
 
+void FeatureTracker::line_detect(const Mat &_img)
+{
+  cv::Mat img;
+
+  if (EQUALIZE)
+  {
+      cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(3.0, cv::Size(8, 8));
+      TicToc t_c;
+      clahe->apply(_img, img);
+      ROS_DEBUG("CLAHE costs: %fms", t_c.toc());
+  }
+  else
+      img = _img;
+
+  if (forw_img.empty())               //this is the first frame
+      prev_img = cur_img = forw_img = img;
+  else
+      forw_img = img;
+
+  vector<KeyLine> keylines1;
+  Mat ldesc;
+  Ptr<line_descriptor::BinaryDescriptor> lbd = BinaryDescriptor::createBinaryDescriptor();
+  Ptr<line_descriptor::LSDDetectorC> lsd = cv::line_descriptor::LSDDetectorC::createLSDDetectorC();
+  line_descriptor::LSDDetectorC::LSDOptions opts;
+
+  opts.refine       = 0;
+  opts.scale        = 1.2;
+  opts.sigma_scale  = 0.6;
+  opts.quant        = 2.0;
+  opts.ang_th       = 22.5;
+  opts.log_eps      = 1.0;
+  opts.density_th   = 0.6;
+  opts.n_bins       = 1024;
+  opts.min_length   = 0.0025;
+
+  lsd->detect(img,keylines1,1.2,1,opts);
+  if (keylines1.size()>300)
+  {
+    sort(keylines1.begin(),keylines1.end(),sort_lines_by_response());
+    keylines1.resize(300);
+    for(int i=0;i<300;i++)
+      keylines1[i].class_id=i;
+  }
+
+  lbd->compute(img,keylines1,ldesc);
+
+  if(prev_lines.empty())
+  {
+    prev_lines = cur_lines = keylines1;
+    prev_ldesc = cur_ldesc = ldesc;
+    return;
+  }
+  else{
+    cur_lines = keylines1;
+    cur_ldesc = ldesc;
+  }
+
+}
+
+void matchLineFeature(vector<KeyLine> prev_lines, vector<KeyLine> cur_lines, Mat &prev_ldesc, Mat &cur_ldesc,bool initial)
+{
+
+}
+
 void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
 {
     cv::Mat img;

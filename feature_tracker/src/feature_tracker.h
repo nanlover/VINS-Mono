@@ -13,13 +13,22 @@
 #include "camodocal/camera_models/CataCamera.h"
 #include "camodocal/camera_models/PinholeCamera.h"
 
+#include <opencv/cv.h>
+#include <opencv2/features2d.hpp>
+#include <opencv2/ximgproc.hpp>
+#include <opencv2/ximgproc/fast_line_detector.hpp>
+#include "line_descriptor/descriptor_custom.hpp"
+#include "line_descriptor_custom.hpp"
+
 #include "parameters.h"
 #include "tic_toc.h"
+#include "auxiliar.h"
 
 using namespace std;
 using namespace camodocal;
 using namespace Eigen;
-
+using namespace cv;
+using namespace line_descriptor;
 bool inBorder(const cv::Point2f &pt);
 
 void reduceVector(vector<cv::Point2f> &v, vector<uchar> status);
@@ -31,6 +40,10 @@ class FeatureTracker
     FeatureTracker();
 
     void readImage(const cv::Mat &_img,double _cur_time);
+
+    void line_detect(const cv::Mat &_img);//by myself
+
+    void matchLineFeature(vector<KeyLine> prev_lines, vector<KeyLine> cur_lines, Mat &prev_ldesc, Mat &cur_ldesc,bool initial);       //by myself
 
     void setMask();
 
@@ -60,6 +73,9 @@ class FeatureTracker
     camodocal::CameraPtr m_camera;
     double cur_time;
     double prev_time;
+
+    vector<KeyLine> prev_lines,cur_lines,frow_lines;
+    cv::Mat prev_ldesc,cur_ldesc,frow_ldecs;
 
     static int n_id;
 };

@@ -38,6 +38,7 @@ add_executable(feature_tracker
     src/feature_tracker_node.cpp
     src/parameters.cpp
     src/feature_tracker.cpp
+    src/auxiliar.cpp
     )
 
 list(APPEND LINK_LIBS
