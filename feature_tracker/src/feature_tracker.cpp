@@ -134,12 +134,70 @@ void FeatureTracker::line_detect(const Mat &_img)
     cur_lines = keylines1;
     cur_ldesc = ldesc;
   }
+  match(prev_ldesc,cur_ldesc,0.9,matches_12);
+}
 
+int distance(const cv::Mat &a, const cv::Mat &b) {
+
+    // adapted from: http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+
+    const int *pa = a.ptr<int32_t>();
+    const int *pb = b.ptr<int32_t>();
+
+    int dist = 0;
+    for(int i = 0; i < 8; i++, pa++, pb++) {
+        unsigned  int v = *pa ^ *pb;
+        v = v - ((v >> 1) & 0x55555555);
+        v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+        dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+    }
+
+    return dist;
 }
 
 void matchLineFeature(vector<KeyLine> prev_lines, vector<KeyLine> cur_lines, Mat &prev_ldesc, Mat &cur_ldesc,bool initial)
 {
 
+}
+
+int FeatureTracker::matchNNR(const cv::Mat &desc1, const cv::Mat &desc2, float nnr, std::vector<int> &matches_12)  //complited
+{
+  int matches = 0;
+  matches_12.resize(desc1.rows, -1);
+
+  std::vector<std::vector<cv::DMatch>> matches_;
+  cv::Ptr<cv::BFMatcher> bfm = cv::BFMatcher::create(cv::NORM_HAMMING, false); // cross-check
+  bfm->knnMatch(desc1, desc2, matches_, 2);
+
+  if (desc1.rows != matches_.size())
+      throw std::runtime_error("[matchNNR] Different size for matches and descriptors!");
+
+  for (int idx = 0; idx < desc1.rows; ++idx) {
+      if (matches_[idx][0].distance < matches_[idx][1].distance * nnr) {
+          matches_12[idx] = matches_[idx][0].trainIdx;
+          matches++;
+      }
+  }
+
+  return matches;
+}
+
+int FeatureTracker::match(const Mat &desc1, const Mat &desc2, float nnr, std::vector<int> &matches_12)
+{
+  int matches;
+  std::vector<int> matches_21;
+  matches = matchNNR(desc1,desc2,nnr,matches_12);
+  matchNNR(desc2,desc1,nnr,matches_21);
+  for(int i1=0;i1<matches_12.size();++i1)
+  {
+    int &i2 = matches_12[i1];
+    if(i2>=0&&matches_21[i2]!=i1)
+    {
+      i2=-1;
+      matches--;
+    }
+  }
+  return matches;
 }
 
 void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
@@ -228,6 +286,7 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
     cur_pts = forw_pts;
     undistortedPoints();
     prev_time = cur_time;
+    line_detect(_img);
 }
 
 void FeatureTracker::rejectWithF()

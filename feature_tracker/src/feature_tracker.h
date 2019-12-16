@@ -43,7 +43,13 @@ class FeatureTracker
 
     void line_detect(const cv::Mat &_img);//by myself
 
-    void matchLineFeature(vector<KeyLine> prev_lines, vector<KeyLine> cur_lines, Mat &prev_ldesc, Mat &cur_ldesc,bool initial);       //by myself
+    void matchLineFeature(vector<KeyLine> prev_lines, vector<KeyLine> cur_lines, Mat &prev_ldesc, Mat &cur_ldesc,bool initial);//by myself
+
+    int matchNNR(const cv::Mat &desc1, const cv::Mat &desc2, float nnr, std::vector<int> &matches_12);
+
+    int match(const cv::Mat &desc1, const cv::Mat &desc2, float nnr, std::vector<int> &matches_12);
+
+    int distance(const cv::Mat &a, const cv::Mat &b);
 
     void setMask();
 
@@ -76,6 +82,7 @@ class FeatureTracker
 
     vector<KeyLine> prev_lines,cur_lines,frow_lines;
     cv::Mat prev_ldesc,cur_ldesc,frow_ldecs;
+    std::vector<int> matches_12;
 
     static int n_id;
 };
