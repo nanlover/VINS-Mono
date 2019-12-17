@@ -8,7 +8,9 @@
 
 #include <opencv2/opencv.hpp>
 #include <eigen3/Eigen/Dense>
-
+//for basic operation like cross
+//#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include "camodocal/camera_models/CameraFactory.h"
 #include "camodocal/camera_models/CataCamera.h"
 #include "camodocal/camera_models/PinholeCamera.h"
@@ -20,6 +22,9 @@
 #include "line_descriptor/descriptor_custom.hpp"
 #include "line_descriptor_custom.hpp"
 
+//class lineFeature
+#include "stereoFeatures.h"
+
 #include "parameters.h"
 #include "tic_toc.h"
 #include "auxiliar.h"
@@ -29,6 +34,8 @@ using namespace camodocal;
 using namespace Eigen;
 using namespace cv;
 using namespace line_descriptor;
+//using namespace StVO;
+
 bool inBorder(const cv::Point2f &pt);
 
 void reduceVector(vector<cv::Point2f> &v, vector<uchar> status);
@@ -43,7 +50,7 @@ class FeatureTracker
 
     void line_detect(const cv::Mat &_img);//by myself
 
-    void matchLineFeature(vector<KeyLine> prev_lines, vector<KeyLine> cur_lines, Mat &prev_ldesc, Mat &cur_ldesc,bool initial);//by myself
+    void matchF2FLines();//by myself
 
     int matchNNR(const cv::Mat &desc1, const cv::Mat &desc2, float nnr, std::vector<int> &matches_12);
 
@@ -80,9 +87,12 @@ class FeatureTracker
     double cur_time;
     double prev_time;
 
+    vector<KeyLine> keylines1;
     vector<KeyLine> prev_lines,cur_lines,frow_lines;
     cv::Mat prev_ldesc,cur_ldesc,frow_ldecs;
     std::vector<int> matches_12;
+    std::list< LineFeature*  > matched_ls;
+    cv::Mat ldesc_l_aux;
 
     static int n_id;
 };

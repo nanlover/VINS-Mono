@@ -39,6 +39,7 @@ add_executable(feature_tracker
     src/parameters.cpp
     src/feature_tracker.cpp
     src/auxiliar.cpp
+    src/stereoFeatures.cpp
     )
 
 list(APPEND LINK_LIBS

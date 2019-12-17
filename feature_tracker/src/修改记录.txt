@@ -1,4 +1,4 @@
 add auxiliar.h & auxiliar.cpp for sort lines
 
-add gridStructure.cpp & gridStructure.h
-    matching.cpp & matching.h for line matching
+add stereoFeatures.cpp & stereoFeatures.h for class LineFeature
+
